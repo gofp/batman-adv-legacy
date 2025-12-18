@@ -23,7 +23,7 @@
 struct netlink_callback;
 struct sk_buff;
 
-int batadv_iv_init(void);
-int batadv_algo_dump(struct sk_buff *msg, struct netlink_callback *cb);
+int batadv_lega_iv_init(void);
+int batadv_lega_algo_dump(struct sk_buff *msg, struct netlink_callback *cb);
 
 #endif /* _NET_BATMAN_ADV_BAT_ALGO_H_ */

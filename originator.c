@@ -34,12 +34,12 @@
 #include "uapi/linux/batman_adv.h"
 
 /* hash class keys */
-static struct lock_class_key batadv_orig_hash_lock_class_key;
+static struct lock_class_key batadv_lega_orig_hash_lock_class_key;
 
-static void batadv_purge_orig(struct work_struct *work);
+static void batadv_lega_purge_orig(struct work_struct *work);
 
 /* returns 1 if they are the same originator */
-static int batadv_compare_orig(const struct hlist_node *node, const void *data2)
+static int batadv_lega_compare_orig(const struct hlist_node *node, const void *data2)
 {
 	const void *data1 = container_of(node, struct batadv_orig_node,
 					 hash_entry);
@@ -47,21 +47,21 @@ static int batadv_compare_orig(const struct hlist_node *node, const void *data2)
 	return (memcmp(data1, data2, ETH_ALEN) == 0 ? 1 : 0);
 }
 
-int batadv_originator_init(struct batadv_priv *bat_priv)
+int batadv_lega_originator_init(struct batadv_priv *bat_priv)
 {
 	if (bat_priv->orig_hash)
 		return 0;
 
-	bat_priv->orig_hash = batadv_hash_new(1024);
+	bat_priv->orig_hash = batadv_lega_hash_new(1024);
 
 	if (!bat_priv->orig_hash)
 		goto err;
 
-	batadv_hash_set_lock_class(bat_priv->orig_hash,
-				   &batadv_orig_hash_lock_class_key);
+	batadv_lega_hash_set_lock_class(bat_priv->orig_hash,
+				   &batadv_lega_orig_hash_lock_class_key);
 
-	INIT_DELAYED_WORK(&bat_priv->orig_work, batadv_purge_orig);
-	queue_delayed_work(batadv_event_workqueue,
+	INIT_DELAYED_WORK(&bat_priv->orig_work, batadv_lega_purge_orig);
+	queue_delayed_work(batadv_lega_event_workqueue,
 			   &bat_priv->orig_work,
 			   msecs_to_jiffies(BATADV_ORIG_WORK_PERIOD));
 
@@ -71,7 +71,7 @@ err:
 	return -ENOMEM;
 }
 
-void batadv_neigh_node_free_ref(struct batadv_neigh_node *neigh_node)
+void batadv_lega_neigh_node_free_ref(struct batadv_neigh_node *neigh_node)
 {
 	if (atomic_dec_and_test(&neigh_node->refcount))
 		kfree_rcu(neigh_node, rcu);
@@ -79,7 +79,7 @@ void batadv_neigh_node_free_ref(struct batadv_neigh_node *neigh_node)
 
 /* increases the refcounter of a found router */
 struct batadv_neigh_node *
-batadv_orig_node_get_router(struct batadv_orig_node *orig_node)
+batadv_lega_orig_node_get_router(struct batadv_orig_node *orig_node)
 {
 	struct batadv_neigh_node *router;
 
@@ -94,7 +94,7 @@ batadv_orig_node_get_router(struct batadv_orig_node *orig_node)
 }
 
 struct batadv_neigh_node *
-batadv_neigh_node_new(struct batadv_hard_iface *hard_iface,
+batadv_lega_neigh_node_new(struct batadv_hard_iface *hard_iface,
 		      const uint8_t *neigh_addr)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
@@ -112,7 +112,7 @@ batadv_neigh_node_new(struct batadv_hard_iface *hard_iface,
 	/* extra reference for return */
 	atomic_set(&neigh_node->refcount, 2);
 
-	batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+	batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 		   "Creating new neighbor %pM on interface %s\n", neigh_addr,
 		   hard_iface->net_dev->name);
 
@@ -120,7 +120,7 @@ out:
 	return neigh_node;
 }
 
-static void batadv_orig_node_free_rcu(struct rcu_head *rcu)
+static void batadv_lega_orig_node_free_rcu(struct rcu_head *rcu)
 {
 	struct hlist_node *node_tmp;
 	struct batadv_neigh_node *neigh_node, *tmp_neigh_node;
@@ -134,22 +134,22 @@ static void batadv_orig_node_free_rcu(struct rcu_head *rcu)
 	list_for_each_entry_safe(neigh_node, tmp_neigh_node,
 				 &orig_node->bond_list, bonding_list) {
 		list_del_rcu(&neigh_node->bonding_list);
-		batadv_neigh_node_free_ref(neigh_node);
+		batadv_lega_neigh_node_free_ref(neigh_node);
 	}
 
 	/* for all neighbors towards this originator ... */
 	hlist_for_each_entry_safe(neigh_node, node_tmp,
 				  &orig_node->neigh_list, list) {
 		hlist_del_rcu(&neigh_node->list);
-		batadv_neigh_node_free_ref(neigh_node);
+		batadv_lega_neigh_node_free_ref(neigh_node);
 	}
 
 	spin_unlock_bh(&orig_node->neigh_list_lock);
 
 	/* Free nc_nodes */
-	batadv_nc_purge_orig(orig_node->bat_priv, orig_node, NULL);
+	batadv_lega_nc_purge_orig(orig_node->bat_priv, orig_node, NULL);
 
-	batadv_frag_list_free(&orig_node->frag_list);
+	batadv_lega_frag_list_free(&orig_node->frag_list);
 
 	kfree(orig_node->tt_buff);
 	kfree(orig_node->bcast_own);
@@ -162,10 +162,10 @@ static void batadv_orig_node_free_rcu(struct rcu_head *rcu)
  * schedule an rcu callback for freeing it
  * @orig_node: the orig node to free
  */
-void batadv_orig_node_free_ref(struct batadv_orig_node *orig_node)
+void batadv_lega_orig_node_free_ref(struct batadv_orig_node *orig_node)
 {
 	if (atomic_dec_and_test(&orig_node->refcount))
-		call_rcu(&orig_node->rcu, batadv_orig_node_free_rcu);
+		call_rcu(&orig_node->rcu, batadv_lega_orig_node_free_rcu);
 }
 
 /**
@@ -173,13 +173,13 @@ void batadv_orig_node_free_ref(struct batadv_orig_node *orig_node)
  * possibly free it (without rcu callback)
  * @orig_node: the orig node to free
  */
-void batadv_orig_node_free_ref_now(struct batadv_orig_node *orig_node)
+void batadv_lega_orig_node_free_ref_now(struct batadv_orig_node *orig_node)
 {
 	if (atomic_dec_and_test(&orig_node->refcount))
-		batadv_orig_node_free_rcu(&orig_node->rcu);
+		batadv_lega_orig_node_free_rcu(&orig_node->rcu);
 }
 
-void batadv_originator_free(struct batadv_priv *bat_priv)
+void batadv_lega_originator_free(struct batadv_priv *bat_priv)
 {
 	struct batadv_hashtable *hash = bat_priv->orig_hash;
 	struct hlist_node *node_tmp;
@@ -203,18 +203,18 @@ void batadv_originator_free(struct batadv_priv *bat_priv)
 		hlist_for_each_entry_safe(orig_node, node_tmp,
 					  head, hash_entry) {
 			hlist_del_rcu(&orig_node->hash_entry);
-			batadv_orig_node_free_ref(orig_node);
+			batadv_lega_orig_node_free_ref(orig_node);
 		}
 		spin_unlock_bh(list_lock);
 	}
 
-	batadv_hash_destroy(hash);
+	batadv_lega_hash_destroy(hash);
 }
 
 /* this function finds or creates an originator entry for the given
  * address if it does not exits
  */
-struct batadv_orig_node *batadv_get_orig_node(struct batadv_priv *bat_priv,
+struct batadv_orig_node *batadv_lega_get_orig_node(struct batadv_priv *bat_priv,
 					      const uint8_t *addr)
 {
 	struct batadv_orig_node *orig_node;
@@ -222,11 +222,11 @@ struct batadv_orig_node *batadv_get_orig_node(struct batadv_priv *bat_priv,
 	int hash_added;
 	unsigned long reset_time;
 
-	orig_node = batadv_orig_hash_find(bat_priv, addr);
+	orig_node = batadv_lega_orig_hash_find(bat_priv, addr);
 	if (orig_node)
 		return orig_node;
 
-	batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+	batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 		   "Creating new originator: %pM\n", addr);
 
 	orig_node = kzalloc(sizeof(*orig_node), GFP_ATOMIC);
@@ -240,7 +240,7 @@ struct batadv_orig_node *batadv_get_orig_node(struct batadv_priv *bat_priv,
 	spin_lock_init(&orig_node->neigh_list_lock);
 	spin_lock_init(&orig_node->tt_buff_lock);
 
-	batadv_nc_init_orig(orig_node);
+	batadv_lega_nc_init_orig(orig_node);
 
 	/* extra reference for return */
 	atomic_set(&orig_node->refcount, 2);
@@ -248,7 +248,7 @@ struct batadv_orig_node *batadv_get_orig_node(struct batadv_priv *bat_priv,
 	orig_node->tt_initialised = false;
 	orig_node->bat_priv = bat_priv;
 	memcpy(orig_node->orig, addr, ETH_ALEN);
-	batadv_dat_init_orig_node_addr(orig_node);
+	batadv_lega_dat_init_orig_node_addr(orig_node);
 	orig_node->router = NULL;
 	orig_node->tt_crc = 0;
 	atomic_set(&orig_node->last_ttvn, 0);
@@ -277,8 +277,8 @@ struct batadv_orig_node *batadv_get_orig_node(struct batadv_priv *bat_priv,
 	if (!orig_node->bcast_own_sum)
 		goto free_bcast_own;
 
-	hash_added = batadv_hash_add(bat_priv->orig_hash, batadv_compare_orig,
-				     batadv_choose_orig, orig_node,
+	hash_added = batadv_lega_hash_add(bat_priv->orig_hash, batadv_lega_compare_orig,
+				     batadv_lega_choose_orig, orig_node,
 				     &orig_node->hash_entry);
 	if (hash_added != 0)
 		goto free_bcast_own_sum;
@@ -294,7 +294,7 @@ free_orig_node:
 }
 
 static bool
-batadv_purge_orig_neighbors(struct batadv_priv *bat_priv,
+batadv_lega_purge_orig_neighbors(struct batadv_priv *bat_priv,
 			    struct batadv_orig_node *orig_node,
 			    struct batadv_neigh_node **best_neigh_node)
 {
@@ -314,19 +314,19 @@ batadv_purge_orig_neighbors(struct batadv_priv *bat_priv,
 		last_seen = neigh_node->last_seen;
 		if_incoming = neigh_node->if_incoming;
 
-		if ((batadv_has_timed_out(last_seen, BATADV_PURGE_TIMEOUT)) ||
+		if ((batadv_lega_has_timed_out(last_seen, BATADV_PURGE_TIMEOUT)) ||
 		    (if_incoming->if_status == BATADV_IF_INACTIVE) ||
 		    (if_incoming->if_status == BATADV_IF_NOT_IN_USE) ||
 		    (if_incoming->if_status == BATADV_IF_TO_BE_REMOVED)) {
 			if ((if_incoming->if_status == BATADV_IF_INACTIVE) ||
 			    (if_incoming->if_status == BATADV_IF_NOT_IN_USE) ||
 			    (if_incoming->if_status == BATADV_IF_TO_BE_REMOVED))
-				batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+				batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 					   "neighbor purge: originator %pM, neighbor: %pM, iface: %s\n",
 					   orig_node->orig, neigh_node->addr,
 					   if_incoming->net_dev->name);
 			else
-				batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+				batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 					   "neighbor timeout: originator %pM, neighbor: %pM, last_seen: %u\n",
 					   orig_node->orig, neigh_node->addr,
 					   jiffies_to_msecs(last_seen));
@@ -334,8 +334,8 @@ batadv_purge_orig_neighbors(struct batadv_priv *bat_priv,
 			neigh_purged = true;
 
 			hlist_del_rcu(&neigh_node->list);
-			batadv_bonding_candidate_del(orig_node, neigh_node);
-			batadv_neigh_node_free_ref(neigh_node);
+			batadv_lega_bonding_candidate_del(orig_node, neigh_node);
+			batadv_lega_neigh_node_free_ref(neigh_node);
 		} else {
 			if ((!*best_neigh_node) ||
 			    (neigh_node->tq_avg > (*best_neigh_node)->tq_avg))
@@ -347,29 +347,29 @@ batadv_purge_orig_neighbors(struct batadv_priv *bat_priv,
 	return neigh_purged;
 }
 
-static bool batadv_purge_orig_node(struct batadv_priv *bat_priv,
+static bool batadv_lega_purge_orig_node(struct batadv_priv *bat_priv,
 				   struct batadv_orig_node *orig_node)
 {
 	struct batadv_neigh_node *best_neigh_node;
 
-	if (batadv_has_timed_out(orig_node->last_seen,
+	if (batadv_lega_has_timed_out(orig_node->last_seen,
 				 2 * BATADV_PURGE_TIMEOUT)) {
-		batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+		batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 			   "Originator timeout: originator %pM, last_seen %u\n",
 			   orig_node->orig,
 			   jiffies_to_msecs(orig_node->last_seen));
 		return true;
 	} else {
-		if (batadv_purge_orig_neighbors(bat_priv, orig_node,
+		if (batadv_lega_purge_orig_neighbors(bat_priv, orig_node,
 						&best_neigh_node))
-			batadv_update_route(bat_priv, orig_node,
+			batadv_lega_update_route(bat_priv, orig_node,
 					    best_neigh_node);
 	}
 
 	return false;
 }
 
-static void _batadv_purge_orig(struct batadv_priv *bat_priv)
+static void _batadv_lega_purge_orig(struct batadv_priv *bat_priv)
 {
 	struct batadv_hashtable *hash = bat_priv->orig_hash;
 	struct hlist_node *node_tmp;
@@ -389,48 +389,48 @@ static void _batadv_purge_orig(struct batadv_priv *bat_priv)
 		spin_lock_bh(list_lock);
 		hlist_for_each_entry_safe(orig_node, node_tmp,
 					  head, hash_entry) {
-			if (batadv_purge_orig_node(bat_priv, orig_node)) {
+			if (batadv_lega_purge_orig_node(bat_priv, orig_node)) {
 				if (orig_node->gw_flags)
-					batadv_gw_node_delete(bat_priv,
+					batadv_lega_gw_node_delete(bat_priv,
 							      orig_node);
 				hlist_del_rcu(&orig_node->hash_entry);
-				batadv_tt_global_del_orig(orig_node->bat_priv,
+				batadv_lega_tt_global_del_orig(orig_node->bat_priv,
 							  orig_node,
 							  "originator timed out");
-				batadv_orig_node_free_ref(orig_node);
+				batadv_lega_orig_node_free_ref(orig_node);
 				continue;
 			}
 
-			if (batadv_has_timed_out(orig_node->last_frag_packet,
+			if (batadv_lega_has_timed_out(orig_node->last_frag_packet,
 						 BATADV_FRAG_TIMEOUT))
-				batadv_frag_list_free(&orig_node->frag_list);
+				batadv_lega_frag_list_free(&orig_node->frag_list);
 		}
 		spin_unlock_bh(list_lock);
 	}
 
-	batadv_gw_node_purge(bat_priv);
-	batadv_gw_election(bat_priv);
+	batadv_lega_gw_node_purge(bat_priv);
+	batadv_lega_gw_election(bat_priv);
 }
 
-static void batadv_purge_orig(struct work_struct *work)
+static void batadv_lega_purge_orig(struct work_struct *work)
 {
 	struct delayed_work *delayed_work;
 	struct batadv_priv *bat_priv;
 
 	delayed_work = container_of(work, struct delayed_work, work);
 	bat_priv = container_of(delayed_work, struct batadv_priv, orig_work);
-	_batadv_purge_orig(bat_priv);
-	queue_delayed_work(batadv_event_workqueue,
+	_batadv_lega_purge_orig(bat_priv);
+	queue_delayed_work(batadv_lega_event_workqueue,
 			   &bat_priv->orig_work,
 			   msecs_to_jiffies(BATADV_ORIG_WORK_PERIOD));
 }
 
-void batadv_purge_orig_ref(struct batadv_priv *bat_priv)
+void batadv_lega_purge_orig_ref(struct batadv_priv *bat_priv)
 {
-	_batadv_purge_orig(bat_priv);
+	_batadv_lega_purge_orig(bat_priv);
 }
 
-int batadv_orig_seq_print_text(struct seq_file *seq, void *offset)
+int batadv_lega_orig_seq_print_text(struct seq_file *seq, void *offset)
 {
 	struct net_device *net_dev = (struct net_device *)seq->private;
 	struct batadv_priv *bat_priv = netdev_priv(net_dev);
@@ -445,7 +445,7 @@ int batadv_orig_seq_print_text(struct seq_file *seq, void *offset)
 	unsigned long last_seen_jiffies;
 	uint32_t i;
 
-	primary_if = batadv_seq_print_text_primary_if_get(seq);
+	primary_if = batadv_lega_seq_print_text_primary_if_get(seq);
 	if (!primary_if)
 		goto out;
 
@@ -461,7 +461,7 @@ int batadv_orig_seq_print_text(struct seq_file *seq, void *offset)
 
 		rcu_read_lock();
 		hlist_for_each_entry_rcu(orig_node, head, hash_entry) {
-			neigh_node = batadv_orig_node_get_router(orig_node);
+			neigh_node = batadv_lega_orig_node_get_router(orig_node);
 			if (!neigh_node)
 				continue;
 
@@ -490,7 +490,7 @@ int batadv_orig_seq_print_text(struct seq_file *seq, void *offset)
 			batman_count++;
 
 next:
-			batadv_neigh_node_free_ref(neigh_node);
+			batadv_lega_neigh_node_free_ref(neigh_node);
 		}
 		rcu_read_unlock();
 	}
@@ -500,11 +500,11 @@ next:
 
 out:
 	if (primary_if)
-		batadv_hardif_free_ref(primary_if);
+		batadv_lega_hardif_free_ref(primary_if);
 	return 0;
 }
 
-static int batadv_orig_node_add_if(struct batadv_orig_node *orig_node,
+static int batadv_lega_orig_node_add_if(struct batadv_orig_node *orig_node,
 				   int max_if_num)
 {
 	void *data_ptr;
@@ -540,7 +540,7 @@ static int batadv_orig_node_add_if(struct batadv_orig_node *orig_node,
  *
  * Return: 0 or error value
  */
-int batadv_orig_dump(struct sk_buff *msg, struct netlink_callback *cb)
+int batadv_lega_orig_dump(struct sk_buff *msg, struct netlink_callback *cb)
 {
 	struct net *net = sock_net(cb->skb->sk);
 	struct net_device *soft_iface;
@@ -551,30 +551,30 @@ int batadv_orig_dump(struct sk_buff *msg, struct netlink_callback *cb)
 	int ret;
 	int ifindex, hard_ifindex;
 
-	ifindex = batadv_netlink_get_ifindex(cb->nlh, BATADV_ATTR_MESH_IFINDEX);
+	ifindex = batadv_lega_netlink_get_ifindex(cb->nlh, BATADV_ATTR_MESH_IFINDEX);
 	if (!ifindex)
 		return -EINVAL;
 
 	soft_iface = dev_get_by_index(net, ifindex);
-	if (!soft_iface || !batadv_softif_is_valid(soft_iface)) {
+	if (!soft_iface || !batadv_lega_softif_is_valid(soft_iface)) {
 		ret = -ENODEV;
 		goto out;
 	}
 
 	bat_priv = netdev_priv(soft_iface);
 
-	primary_if = batadv_primary_if_get_selected(bat_priv);
+	primary_if = batadv_lega_primary_if_get_selected(bat_priv);
 	if (!primary_if || primary_if->if_status != BATADV_IF_ACTIVE) {
 		ret = -ENOENT;
 		goto out;
 	}
 
-	hard_ifindex = batadv_netlink_get_ifindex(cb->nlh,
+	hard_ifindex = batadv_lega_netlink_get_ifindex(cb->nlh,
 						  BATADV_ATTR_HARD_IFINDEX);
 	if (hard_ifindex) {
 		hard_iface = dev_get_by_index(net, hard_ifindex);
 		if (hard_iface)
-			hardif = batadv_hardif_get_by_netdev(hard_iface);
+			hardif = batadv_lega_hardif_get_by_netdev(hard_iface);
 
 		if (!hardif) {
 			ret = -ENODEV;
@@ -598,18 +598,18 @@ int batadv_orig_dump(struct sk_buff *msg, struct netlink_callback *cb)
 
  out:
 	if (hardif)
-		batadv_hardif_free_ref(hardif);
+		batadv_lega_hardif_free_ref(hardif);
 	if (hard_iface)
 		dev_put(hard_iface);
 	if (primary_if)
-		batadv_hardif_free_ref(primary_if);
+		batadv_lega_hardif_free_ref(primary_if);
 	if (soft_iface)
 		dev_put(soft_iface);
 
 	return ret;
 }
 
-int batadv_orig_hash_add_if(struct batadv_hard_iface *hard_iface,
+int batadv_lega_orig_hash_add_if(struct batadv_hard_iface *hard_iface,
 			    int max_if_num)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
@@ -628,7 +628,7 @@ int batadv_orig_hash_add_if(struct batadv_hard_iface *hard_iface,
 		rcu_read_lock();
 		hlist_for_each_entry_rcu(orig_node, head, hash_entry) {
 			spin_lock_bh(&orig_node->ogm_cnt_lock);
-			ret = batadv_orig_node_add_if(orig_node, max_if_num);
+			ret = batadv_lega_orig_node_add_if(orig_node, max_if_num);
 			spin_unlock_bh(&orig_node->ogm_cnt_lock);
 
 			if (ret == -ENOMEM)
@@ -644,7 +644,7 @@ err:
 	return -ENOMEM;
 }
 
-static int batadv_orig_node_del_if(struct batadv_orig_node *orig_node,
+static int batadv_lega_orig_node_del_if(struct batadv_orig_node *orig_node,
 				   int max_if_num, int del_if_num)
 {
 	void *data_ptr = NULL;
@@ -692,7 +692,7 @@ free_own_sum:
 	return 0;
 }
 
-int batadv_orig_hash_del_if(struct batadv_hard_iface *hard_iface,
+int batadv_lega_orig_hash_del_if(struct batadv_hard_iface *hard_iface,
 			    int max_if_num)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
@@ -712,7 +712,7 @@ int batadv_orig_hash_del_if(struct batadv_hard_iface *hard_iface,
 		rcu_read_lock();
 		hlist_for_each_entry_rcu(orig_node, head, hash_entry) {
 			spin_lock_bh(&orig_node->ogm_cnt_lock);
-			ret = batadv_orig_node_del_if(orig_node, max_if_num,
+			ret = batadv_lega_orig_node_del_if(orig_node, max_if_num,
 						      hard_iface->if_num);
 			spin_unlock_bh(&orig_node->ogm_cnt_lock);
 
@@ -724,7 +724,7 @@ int batadv_orig_hash_del_if(struct batadv_hard_iface *hard_iface,
 
 	/* renumber remaining batman interfaces _inside_ of orig_hash_lock */
 	rcu_read_lock();
-	list_for_each_entry_rcu(hard_iface_tmp, &batadv_hardif_list, list) {
+	list_for_each_entry_rcu(hard_iface_tmp, &batadv_lega_hardif_list, list) {
 		if (hard_iface_tmp->if_status == BATADV_IF_NOT_IN_USE)
 			continue;
 

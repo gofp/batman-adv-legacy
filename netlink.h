@@ -20,10 +20,10 @@
 
 struct nlmsghdr;
 
-void batadv_netlink_register(void);
-void batadv_netlink_unregister(void);
-int batadv_netlink_get_ifindex(const struct nlmsghdr *nlh, int attrtype);
+void batadv_lega_netlink_register(void);
+void batadv_lega_netlink_unregister(void);
+int batadv_lega_netlink_get_ifindex(const struct nlmsghdr *nlh, int attrtype);
 
-extern struct genl_family batadv_netlink_family;
+extern struct genl_family batadv_lega_netlink_family;
 
 #endif /* _NET_BATMAN_ADV_NETLINK_H_ */

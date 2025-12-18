@@ -39,29 +39,29 @@ enum batadv_hard_if_cleanup {
 	BATADV_IF_CLEANUP_AUTO,
 };
 
-extern struct notifier_block batadv_hard_if_notifier;
+extern struct notifier_block batadv_lega_hard_if_notifier;
 
 struct batadv_hard_iface*
-batadv_hardif_get_by_netdev(const struct net_device *net_dev);
-int batadv_hardif_enable_interface(struct batadv_hard_iface *hard_iface,
+batadv_lega_hardif_get_by_netdev(const struct net_device *net_dev);
+int batadv_lega_hardif_enable_interface(struct batadv_hard_iface *hard_iface,
 				   const char *iface_name);
-void batadv_hardif_disable_interface(struct batadv_hard_iface *hard_iface,
+void batadv_lega_hardif_disable_interface(struct batadv_hard_iface *hard_iface,
 				     enum batadv_hard_if_cleanup autodel);
-void batadv_hardif_remove_interfaces(void);
-int batadv_hardif_min_mtu(struct net_device *soft_iface);
-void batadv_update_min_mtu(struct net_device *soft_iface);
-void batadv_hardif_free_rcu(struct rcu_head *rcu);
-bool batadv_is_wifi_iface(int ifindex);
+void batadv_lega_hardif_remove_interfaces(void);
+int batadv_lega_hardif_min_mtu(struct net_device *soft_iface);
+void batadv_lega_update_min_mtu(struct net_device *soft_iface);
+void batadv_lega_hardif_free_rcu(struct rcu_head *rcu);
+bool batadv_lega_is_wifi_iface(int ifindex);
 
 static inline void
-batadv_hardif_free_ref(struct batadv_hard_iface *hard_iface)
+batadv_lega_hardif_free_ref(struct batadv_hard_iface *hard_iface)
 {
 	if (atomic_dec_and_test(&hard_iface->refcount))
-		call_rcu(&hard_iface->rcu, batadv_hardif_free_rcu);
+		call_rcu(&hard_iface->rcu, batadv_lega_hardif_free_rcu);
 }
 
 static inline struct batadv_hard_iface *
-batadv_primary_if_get_selected(struct batadv_priv *bat_priv)
+batadv_lega_primary_if_get_selected(struct batadv_priv *bat_priv)
 {
 	struct batadv_hard_iface *hard_iface;
 

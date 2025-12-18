@@ -30,8 +30,8 @@ enum batadv_gw_modes {
 #define BATADV_GW_MODE_CLIENT_NAME	"client"
 #define BATADV_GW_MODE_SERVER_NAME	"server"
 
-void batadv_gw_bandwidth_to_kbit(uint8_t gw_class, int *down, int *up);
-ssize_t batadv_gw_bandwidth_set(struct net_device *net_dev, char *buff,
+void batadv_lega_gw_bandwidth_to_kbit(uint8_t gw_class, int *down, int *up);
+ssize_t batadv_lega_gw_bandwidth_set(struct net_device *net_dev, char *buff,
 				size_t count);
 
 #endif /* _NET_BATMAN_ADV_GATEWAY_COMMON_H_ */

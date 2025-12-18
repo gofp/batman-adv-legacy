@@ -48,9 +48,9 @@
 #include "soft-interface.h"
 #include "translation-table.h"
 
-struct genl_family batadv_netlink_family;
+struct genl_family batadv_lega_netlink_family;
 
-static struct nla_policy batadv_netlink_policy[NUM_BATADV_ATTR] = {
+static struct nla_policy batadv_lega_netlink_policy[NUM_BATADV_ATTR] = {
 	[BATADV_ATTR_VERSION]		= { .type = NLA_STRING },
 	[BATADV_ATTR_ALGO_NAME]		= { .type = NLA_STRING },
 	[BATADV_ATTR_MESH_IFINDEX]	= { .type = NLA_U32 },
@@ -97,7 +97,7 @@ static struct nla_policy batadv_netlink_policy[NUM_BATADV_ATTR] = {
  * Return: interface index, or 0.
  */
 int
-batadv_netlink_get_ifindex(const struct nlmsghdr *nlh, int attrtype)
+batadv_lega_netlink_get_ifindex(const struct nlmsghdr *nlh, int attrtype)
 {
 	struct nlattr *attr = nlmsg_find_attr(nlh, GENL_HDRLEN, attrtype);
 
@@ -113,7 +113,7 @@ batadv_netlink_get_ifindex(const struct nlmsghdr *nlh, int attrtype)
  * Return: 0 on success, < 0 on error
  */
 static int
-batadv_netlink_mesh_info_put(struct sk_buff *msg, struct net_device *soft_iface)
+batadv_lega_netlink_mesh_info_put(struct sk_buff *msg, struct net_device *soft_iface)
 {
 	struct batadv_priv *bat_priv = netdev_priv(soft_iface);
 	struct batadv_hard_iface *primary_if = NULL;
@@ -137,7 +137,7 @@ batadv_netlink_mesh_info_put(struct sk_buff *msg, struct net_device *soft_iface)
 		goto out;
 #endif
 
-	primary_if = batadv_primary_if_get_selected(bat_priv);
+	primary_if = batadv_lega_primary_if_get_selected(bat_priv);
 	if (primary_if && primary_if->if_status == BATADV_IF_ACTIVE) {
 		hard_iface = primary_if->net_dev;
 
@@ -154,7 +154,7 @@ batadv_netlink_mesh_info_put(struct sk_buff *msg, struct net_device *soft_iface)
 
  out:
 	if (primary_if)
-		batadv_hardif_free_ref(primary_if);
+		batadv_lega_hardif_free_ref(primary_if);
 
 	return ret;
 }
@@ -168,7 +168,7 @@ batadv_netlink_mesh_info_put(struct sk_buff *msg, struct net_device *soft_iface)
  * Return: 0 on success, < 0 on error
  */
 static int
-batadv_netlink_get_mesh_info(struct sk_buff *skb, struct genl_info *info)
+batadv_lega_netlink_get_mesh_info(struct sk_buff *skb, struct genl_info *info)
 {
 	struct net *net = genl_info_net(info);
 	struct net_device *soft_iface;
@@ -185,7 +185,7 @@ batadv_netlink_get_mesh_info(struct sk_buff *skb, struct genl_info *info)
 		return -EINVAL;
 
 	soft_iface = dev_get_by_index(net, ifindex);
-	if (!soft_iface || !batadv_softif_is_valid(soft_iface)) {
+	if (!soft_iface || !batadv_lega_softif_is_valid(soft_iface)) {
 		ret = -ENODEV;
 		goto out;
 	}
@@ -197,14 +197,14 @@ batadv_netlink_get_mesh_info(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	msg_head = genlmsg_put(msg, info->snd_portid, info->snd_seq,
-			       &batadv_netlink_family, 0,
+			       &batadv_lega_netlink_family, 0,
 			       BATADV_CMD_GET_MESH_INFO);
 	if (!msg_head) {
 		ret = -ENOBUFS;
 		goto out;
 	}
 
-	ret = batadv_netlink_mesh_info_put(msg, soft_iface);
+	ret = batadv_lega_netlink_mesh_info_put(msg, soft_iface);
 
  out:
 	if (soft_iface)
@@ -230,13 +230,13 @@ batadv_netlink_get_mesh_info(struct sk_buff *skb, struct genl_info *info)
  * Return: error code, or 0 on success
  */
 static int
-batadv_netlink_dump_hardif_entry(struct sk_buff *msg, u32 portid, u32 seq,
+batadv_lega_netlink_dump_hardif_entry(struct sk_buff *msg, u32 portid, u32 seq,
 				 struct batadv_hard_iface *hard_iface)
 {
 	struct net_device *net_dev = hard_iface->net_dev;
 	void *hdr;
 
-	hdr = genlmsg_put(msg, portid, seq, &batadv_netlink_family, NLM_F_MULTI,
+	hdr = genlmsg_put(msg, portid, seq, &batadv_lega_netlink_family, NLM_F_MULTI,
 			  BATADV_CMD_GET_HARDIFS);
 	if (!hdr)
 		return -EMSGSIZE;
@@ -270,7 +270,7 @@ batadv_netlink_dump_hardif_entry(struct sk_buff *msg, u32 portid, u32 seq,
  * Return: error code, or length of reply message on success
  */
 static int
-batadv_netlink_dump_hardifs(struct sk_buff *msg, struct netlink_callback *cb)
+batadv_lega_netlink_dump_hardifs(struct sk_buff *msg, struct netlink_callback *cb)
 {
 	struct net *net = sock_net(cb->skb->sk);
 	struct net_device *soft_iface;
@@ -281,7 +281,7 @@ batadv_netlink_dump_hardifs(struct sk_buff *msg, struct netlink_callback *cb)
 	int skip = cb->args[0];
 	int i = 0;
 
-	ifindex = batadv_netlink_get_ifindex(cb->nlh,
+	ifindex = batadv_lega_netlink_get_ifindex(cb->nlh,
 					     BATADV_ATTR_MESH_IFINDEX);
 	if (!ifindex)
 		return -EINVAL;
@@ -290,21 +290,21 @@ batadv_netlink_dump_hardifs(struct sk_buff *msg, struct netlink_callback *cb)
 	if (!soft_iface)
 		return -ENODEV;
 
-	if (!batadv_softif_is_valid(soft_iface)) {
+	if (!batadv_lega_softif_is_valid(soft_iface)) {
 		dev_put(soft_iface);
 		return -ENODEV;
 	}
 
 	rcu_read_lock();
 
-	list_for_each_entry_rcu(hard_iface, &batadv_hardif_list, list) {
+	list_for_each_entry_rcu(hard_iface, &batadv_lega_hardif_list, list) {
 		if (hard_iface->soft_iface != soft_iface)
 			continue;
 
 		if (i++ < skip)
 			continue;
 
-		if (batadv_netlink_dump_hardif_entry(msg, portid, seq,
+		if (batadv_lega_netlink_dump_hardif_entry(msg, portid, seq,
 						     hard_iface)) {
 			i--;
 			break;
@@ -320,95 +320,94 @@ batadv_netlink_dump_hardifs(struct sk_buff *msg, struct netlink_callback *cb)
 	return msg->len;
 }
 
-static __genl_const struct genl_ops batadv_netlink_ops[] = {
+static __genl_const struct genl_ops batadv_lega_netlink_ops[] = {
 	{
 		.cmd = BATADV_CMD_GET_MESH_INFO,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.doit = batadv_netlink_get_mesh_info,
+		.policy = batadv_lega_netlink_policy,
+		.doit = batadv_lega_netlink_get_mesh_info,
 	},
 	{
 		.cmd = BATADV_CMD_GET_ROUTING_ALGOS,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_algo_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_algo_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_HARDIFS,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_netlink_dump_hardifs,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_netlink_dump_hardifs,
 	},
 	{
 		.cmd = BATADV_CMD_GET_TRANSTABLE_LOCAL,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_tt_local_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_tt_local_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_TRANSTABLE_GLOBAL,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_tt_global_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_tt_global_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_ORIGINATORS,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_orig_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_orig_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_GATEWAYS,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_gw_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_gw_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_BLA_CLAIM,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_bla_claim_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_bla_claim_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_BLA_BACKBONE,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_bla_backbone_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_bla_backbone_dump,
 	},
 	{
 		.cmd = BATADV_CMD_GET_DAT_CACHE,
-		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 		.flags = GENL_ADMIN_PERM,
-		.dumpit = batadv_dat_cache_dump,
+		.policy = batadv_lega_netlink_policy,
+		.dumpit = batadv_lega_dat_cache_dump,
 	},
 
 };
 
-static __genl_const struct genl_multicast_group batadv_netlink_mcgrps[] = {
+static __genl_const struct genl_multicast_group batadv_lega_netlink_mcgrps[] = {
 };
 
-struct genl_family batadv_netlink_family __ro_after_init = {
+struct genl_family batadv_lega_netlink_family __ro_after_init = {
 	.hdrsize = 0,
 	.name = BATADV_NL_NAME,
 	.version = 1,
 	.maxattr = BATADV_ATTR_MAX,
 	.netnsok = true,
-	.policy = batadv_netlink_policy,
 	.module = THIS_MODULE,
-	.ops = batadv_netlink_ops,
-	.n_ops = ARRAY_SIZE(batadv_netlink_ops),
-	.mcgrps = batadv_netlink_mcgrps,
-	.n_mcgrps = ARRAY_SIZE(batadv_netlink_mcgrps),
+	.ops = batadv_lega_netlink_ops,
+	.n_ops = ARRAY_SIZE(batadv_lega_netlink_ops),
+	.mcgrps = batadv_lega_netlink_mcgrps,
+	.n_mcgrps = ARRAY_SIZE(batadv_lega_netlink_mcgrps),
 };
 
 /**
  * batadv_netlink_register - register batadv genl netlink family
  */
-void __init batadv_netlink_register(void)
+void __init batadv_lega_netlink_register(void)
 {
 	int ret;
 
-	ret = genl_register_family(&batadv_netlink_family);
+	ret = genl_register_family(&batadv_lega_netlink_family);
 	if (ret)
 		pr_warn("unable to register netlink family");
 }
@@ -416,7 +415,7 @@ void __init batadv_netlink_register(void)
 /**
  * batadv_netlink_unregister - unregister batadv genl netlink family
  */
-void batadv_netlink_unregister(void)
+void batadv_lega_netlink_unregister(void)
 {
-	genl_unregister_family(&batadv_netlink_family);
+	genl_unregister_family(&batadv_lega_netlink_family);
 }

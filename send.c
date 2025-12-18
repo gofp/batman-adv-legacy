@@ -31,12 +31,12 @@
 #include <linux/errno.h>
 #include <linux/if_ether.h>
 
-static void batadv_send_outstanding_bcast_packet(struct work_struct *work);
+static void batadv_lega_send_outstanding_bcast_packet(struct work_struct *work);
 
 /* send out an already prepared packet to the given address via the
  * specified batman interface
  */
-int batadv_send_skb_packet(struct sk_buff *skb,
+int batadv_lega_send_skb_packet(struct sk_buff *skb,
 			   struct batadv_hard_iface *hard_iface,
 			   const uint8_t *dst_addr)
 {
@@ -56,7 +56,7 @@ int batadv_send_skb_packet(struct sk_buff *skb,
 	}
 
 	/* push to the ethernet header. */
-	if (batadv_skb_head_push(skb, ETH_HLEN) < 0)
+	if (batadv_lega_skb_head_push(skb, ETH_HLEN) < 0)
 		goto send_skb_err;
 
 	skb_reset_mac_header(skb);
@@ -73,7 +73,7 @@ int batadv_send_skb_packet(struct sk_buff *skb,
 	skb->dev = hard_iface->net_dev;
 
 	/* Save a clone of the skb to use when decoding coded packets */
-	batadv_nc_skb_store_for_decoding(bat_priv, skb);
+	batadv_lega_nc_skb_store_for_decoding(bat_priv, skb);
 
 	/* dev_queue_xmit() returns a negative result on error.	 However on
 	 * congestion and traffic shaping, it drops and returns NET_XMIT_DROP
@@ -99,7 +99,7 @@ send_skb_err:
  * Returns NET_XMIT_SUCCESS on success, NET_XMIT_DROP on failure, or
  * -EINPROGRESS if the skb is buffered for later transmit.
  */
-int batadv_send_skb_to_orig(struct sk_buff *skb,
+int batadv_lega_send_skb_to_orig(struct sk_buff *skb,
 			    struct batadv_orig_node *orig_node,
 			    struct batadv_hard_iface *recv_if)
 {
@@ -108,7 +108,7 @@ int batadv_send_skb_to_orig(struct sk_buff *skb,
 	int ret = NET_XMIT_DROP;
 
 	/* batadv_find_router() increases neigh_nodes refcount if found. */
-	neigh_node = batadv_find_router(bat_priv, orig_node, recv_if);
+	neigh_node = batadv_lega_find_router(bat_priv, orig_node, recv_if);
 	if (!neigh_node)
 		return ret;
 
@@ -116,20 +116,20 @@ int batadv_send_skb_to_orig(struct sk_buff *skb,
 	 * (i.e. being forwarded). If the packet originates from this node or if
 	 * network coding fails, then send the packet as usual.
 	 */
-	if (recv_if && batadv_nc_skb_forward(skb, neigh_node)) {
+	if (recv_if && batadv_lega_nc_skb_forward(skb, neigh_node)) {
 		ret = -EINPROGRESS;
 	} else {
-		batadv_send_skb_packet(skb, neigh_node->if_incoming,
+		batadv_lega_send_skb_packet(skb, neigh_node->if_incoming,
 				       neigh_node->addr);
 		ret = NET_XMIT_SUCCESS;
 	}
 
-	batadv_neigh_node_free_ref(neigh_node);
+	batadv_lega_neigh_node_free_ref(neigh_node);
 
 	return ret;
 }
 
-void batadv_schedule_bat_ogm(struct batadv_hard_iface *hard_iface)
+void batadv_lega_schedule_bat_ogm(struct batadv_hard_iface *hard_iface)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
 
@@ -149,17 +149,17 @@ void batadv_schedule_bat_ogm(struct batadv_hard_iface *hard_iface)
 	bat_priv->bat_algo_ops->bat_ogm_schedule(hard_iface);
 }
 
-static void batadv_forw_packet_free(struct batadv_forw_packet *forw_packet)
+static void batadv_lega_forw_packet_free(struct batadv_forw_packet *forw_packet)
 {
 	if (forw_packet->skb)
 		kfree_skb(forw_packet->skb);
 	if (forw_packet->if_incoming)
-		batadv_hardif_free_ref(forw_packet->if_incoming);
+		batadv_lega_hardif_free_ref(forw_packet->if_incoming);
 	kfree(forw_packet);
 }
 
 static void
-_batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
+_batadv_lega_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
 				 struct batadv_forw_packet *forw_packet,
 				 unsigned long send_time)
 {
@@ -169,7 +169,7 @@ _batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
 	spin_unlock_bh(&bat_priv->forw_bcast_list_lock);
 
 	/* start timer for this packet */
-	queue_delayed_work(batadv_event_workqueue, &forw_packet->delayed_work,
+	queue_delayed_work(batadv_lega_event_workqueue, &forw_packet->delayed_work,
 			   send_time);
 }
 
@@ -182,7 +182,7 @@ _batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
  * The skb is not consumed, so the caller should make sure that the
  * skb is freed.
  */
-int batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
+int batadv_lega_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
 				    const struct sk_buff *skb,
 				    unsigned long delay)
 {
@@ -191,13 +191,13 @@ int batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
 	struct batadv_bcast_packet *bcast_packet;
 	struct sk_buff *newskb;
 
-	if (!batadv_atomic_dec_not_zero(&bat_priv->bcast_queue_left)) {
-		batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+	if (!batadv_lega_atomic_dec_not_zero(&bat_priv->bcast_queue_left)) {
+		batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 			   "bcast packet queue full\n");
 		goto out;
 	}
 
-	primary_if = batadv_primary_if_get_selected(bat_priv);
+	primary_if = batadv_lega_primary_if_get_selected(bat_priv);
 	if (!primary_if)
 		goto out_and_inc;
 
@@ -223,9 +223,9 @@ int batadv_add_bcast_packet_to_list(struct batadv_priv *bat_priv,
 	forw_packet->num_packets = 0;
 
 	INIT_DELAYED_WORK(&forw_packet->delayed_work,
-			  batadv_send_outstanding_bcast_packet);
+			  batadv_lega_send_outstanding_bcast_packet);
 
-	_batadv_add_bcast_packet_to_list(bat_priv, forw_packet, delay);
+	_batadv_lega_add_bcast_packet_to_list(bat_priv, forw_packet, delay);
 	return NETDEV_TX_OK;
 
 packet_free:
@@ -234,11 +234,11 @@ out_and_inc:
 	atomic_inc(&bat_priv->bcast_queue_left);
 out:
 	if (primary_if)
-		batadv_hardif_free_ref(primary_if);
+		batadv_lega_hardif_free_ref(primary_if);
 	return NETDEV_TX_BUSY;
 }
 
-static void batadv_send_outstanding_bcast_packet(struct work_struct *work)
+static void batadv_lega_send_outstanding_bcast_packet(struct work_struct *work)
 {
 	struct batadv_hard_iface *hard_iface;
 	struct delayed_work *delayed_work;
@@ -260,12 +260,12 @@ static void batadv_send_outstanding_bcast_packet(struct work_struct *work)
 	if (atomic_read(&bat_priv->mesh_state) == BATADV_MESH_DEACTIVATING)
 		goto out;
 
-	if (batadv_dat_drop_broadcast_packet(bat_priv, forw_packet))
+	if (batadv_lega_dat_drop_broadcast_packet(bat_priv, forw_packet))
 		goto out;
 
 	/* rebroadcast packet */
 	rcu_read_lock();
-	list_for_each_entry_rcu(hard_iface, &batadv_hardif_list, list) {
+	list_for_each_entry_rcu(hard_iface, &batadv_lega_hardif_list, list) {
 		if (hard_iface->soft_iface != soft_iface)
 			continue;
 
@@ -279,8 +279,8 @@ static void batadv_send_outstanding_bcast_packet(struct work_struct *work)
 		/* send a copy of the saved skb */
 		skb1 = skb_clone(forw_packet->skb, GFP_ATOMIC);
 		if (skb1)
-			batadv_send_skb_packet(skb1, hard_iface,
-					       batadv_broadcast_addr);
+			batadv_lega_send_skb_packet(skb1, hard_iface,
+					       batadv_lega_broadcast_addr);
 	}
 	rcu_read_unlock();
 
@@ -288,17 +288,17 @@ static void batadv_send_outstanding_bcast_packet(struct work_struct *work)
 
 	/* if we still have some more bcasts to send */
 	if (forw_packet->num_packets < BATADV_NUM_BCASTS_MAX) {
-		_batadv_add_bcast_packet_to_list(bat_priv, forw_packet,
+		_batadv_lega_add_bcast_packet_to_list(bat_priv, forw_packet,
 						 msecs_to_jiffies(5));
 		return;
 	}
 
 out:
-	batadv_forw_packet_free(forw_packet);
+	batadv_lega_forw_packet_free(forw_packet);
 	atomic_inc(&bat_priv->bcast_queue_left);
 }
 
-void batadv_send_outstanding_bat_ogm_packet(struct work_struct *work)
+void batadv_lega_send_outstanding_bat_ogm_packet(struct work_struct *work)
 {
 	struct delayed_work *delayed_work;
 	struct batadv_forw_packet *forw_packet;
@@ -322,18 +322,18 @@ void batadv_send_outstanding_bat_ogm_packet(struct work_struct *work)
 	 * shutting down
 	 */
 	if (forw_packet->own)
-		batadv_schedule_bat_ogm(forw_packet->if_incoming);
+		batadv_lega_schedule_bat_ogm(forw_packet->if_incoming);
 
 out:
 	/* don't count own packet */
 	if (!forw_packet->own)
 		atomic_inc(&bat_priv->batman_queue_left);
 
-	batadv_forw_packet_free(forw_packet);
+	batadv_lega_forw_packet_free(forw_packet);
 }
 
 void
-batadv_purge_outstanding_packets(struct batadv_priv *bat_priv,
+batadv_lega_purge_outstanding_packets(struct batadv_priv *bat_priv,
 				 const struct batadv_hard_iface *hard_iface)
 {
 	struct batadv_forw_packet *forw_packet;
@@ -341,11 +341,11 @@ batadv_purge_outstanding_packets(struct batadv_priv *bat_priv,
 	bool pending;
 
 	if (hard_iface)
-		batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+		batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 			   "purge_outstanding_packets(): %s\n",
 			   hard_iface->net_dev->name);
 	else
-		batadv_dbg(BATADV_DBG_BATMAN, bat_priv,
+		batadv_lega_dbg(BATADV_DBG_BATMAN, bat_priv,
 			   "purge_outstanding_packets()\n");
 
 	/* free bcast list */
@@ -369,7 +369,7 @@ batadv_purge_outstanding_packets(struct batadv_priv *bat_priv,
 
 		if (pending) {
 			hlist_del(&forw_packet->list);
-			batadv_forw_packet_free(forw_packet);
+			batadv_lega_forw_packet_free(forw_packet);
 		}
 	}
 	spin_unlock_bh(&bat_priv->forw_bcast_list_lock);
@@ -395,7 +395,7 @@ batadv_purge_outstanding_packets(struct batadv_priv *bat_priv,
 
 		if (pending) {
 			hlist_del(&forw_packet->list);
-			batadv_forw_packet_free(forw_packet);
+			batadv_lega_forw_packet_free(forw_packet);
 		}
 	}
 	spin_unlock_bh(&bat_priv->forw_bat_list_lock);

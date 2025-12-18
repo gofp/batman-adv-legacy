@@ -20,11 +20,11 @@
 #ifndef _NET_BATMAN_ADV_DEBUGFS_H_
 #define _NET_BATMAN_ADV_DEBUGFS_H_
 
-#define BATADV_DEBUGFS_SUBDIR "batman_adv"
+#define BATADV_DEBUGFS_SUBDIR "batman_adv_legacy"
 
-void batadv_debugfs_init(void);
-void batadv_debugfs_destroy(void);
-int batadv_debugfs_add_meshif(struct net_device *dev);
-void batadv_debugfs_del_meshif(struct net_device *dev);
+void batadv_lega_debugfs_init(void);
+void batadv_lega_debugfs_destroy(void);
+int batadv_lega_debugfs_add_meshif(struct net_device *dev);
+void batadv_lega_debugfs_del_meshif(struct net_device *dev);
 
 #endif /* _NET_BATMAN_ADV_DEBUGFS_H_ */

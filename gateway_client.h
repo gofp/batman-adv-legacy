@@ -20,24 +20,24 @@
 #ifndef _NET_BATMAN_ADV_GATEWAY_CLIENT_H_
 #define _NET_BATMAN_ADV_GATEWAY_CLIENT_H_
 
-void batadv_gw_deselect(struct batadv_priv *bat_priv);
-void batadv_gw_election(struct batadv_priv *bat_priv);
+void batadv_lega_gw_deselect(struct batadv_priv *bat_priv);
+void batadv_lega_gw_election(struct batadv_priv *bat_priv);
 struct batadv_orig_node *
-batadv_gw_get_selected_orig(struct batadv_priv *bat_priv);
-void batadv_gw_check_election(struct batadv_priv *bat_priv,
+batadv_lega_gw_get_selected_orig(struct batadv_priv *bat_priv);
+void batadv_lega_gw_check_election(struct batadv_priv *bat_priv,
 			      struct batadv_orig_node *orig_node);
-void batadv_gw_node_update(struct batadv_priv *bat_priv,
+void batadv_lega_gw_node_update(struct batadv_priv *bat_priv,
 			   struct batadv_orig_node *orig_node,
 			   uint8_t new_gwflags);
-void batadv_gw_node_delete(struct batadv_priv *bat_priv,
+void batadv_lega_gw_node_delete(struct batadv_priv *bat_priv,
 			   struct batadv_orig_node *orig_node);
-void batadv_gw_node_purge(struct batadv_priv *bat_priv);
-int batadv_gw_client_seq_print_text(struct seq_file *seq, void *offset);
-int batadv_gw_dump(struct sk_buff *msg, struct netlink_callback *cb);
-bool batadv_gw_is_dhcp_target(struct sk_buff *skb, unsigned int *header_len);
-bool batadv_gw_out_of_range(struct batadv_priv *bat_priv, struct sk_buff *skb);
-void batadv_gw_node_free_ref(struct batadv_gw_node *gw_node);
+void batadv_lega_gw_node_purge(struct batadv_priv *bat_priv);
+int batadv_lega_gw_client_seq_print_text(struct seq_file *seq, void *offset);
+int batadv_lega_gw_dump(struct sk_buff *msg, struct netlink_callback *cb);
+bool batadv_lega_gw_is_dhcp_target(struct sk_buff *skb, unsigned int *header_len);
+bool batadv_lega_gw_out_of_range(struct batadv_priv *bat_priv, struct sk_buff *skb);
+void batadv_lega_gw_node_free_ref(struct batadv_gw_node *gw_node);
 struct batadv_gw_node *
-batadv_gw_get_selected_gw_node(struct batadv_priv *bat_priv);
+batadv_lega_gw_get_selected_gw_node(struct batadv_priv *bat_priv);
 
 #endif /* _NET_BATMAN_ADV_GATEWAY_CLIENT_H_ */

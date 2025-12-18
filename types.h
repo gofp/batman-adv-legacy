@@ -56,7 +56,7 @@ struct batadv_hard_iface_bat_iv {
 
 /**
  * struct batadv_hard_iface - network device known to batman-adv
- * @list: list node for batadv_hardif_list
+ * @list: list node for batadv_lega_hardif_list
  * @if_num: identificator of the interface
  * @if_status: status of the interface for batman-adv
  * @net_dev: pointer to the net_device
@@ -576,7 +576,7 @@ struct batadv_priv {
  * struct batadv_socket_client - layer2 icmp socket client data
  * @queue_list: packet queue for packets destined for this socket client
  * @queue_len: number of packets in the packet queue (queue_list)
- * @index: socket client's index in the batadv_socket_client_hash
+ * @index: socket client's index in the batadv_lega_socket_client_hash
  * @lock: lock protecting queue_list, queue_len & index
  * @queue_wait: socket client's wait queue
  * @bat_priv: pointer to soft_iface this client belongs to
@@ -860,7 +860,7 @@ struct batadv_frag_packet_list_entry {
 
 /**
  * struct batadv_algo_ops - mesh algorithm callbacks
- * @list: list node for the batadv_algo_list
+ * @list: list node for the batadv_lega_algo_list
  * @name: name of the algorithm
  * @bat_iface_enable: init routing info when hard-interface is enabled
  * @bat_iface_disable: de-init routing info when hard-interface is disabled

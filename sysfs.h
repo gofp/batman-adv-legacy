@@ -21,7 +21,7 @@
 #define _NET_BATMAN_ADV_SYSFS_H_
 
 #define BATADV_SYSFS_IF_MESH_SUBDIR "mesh"
-#define BATADV_SYSFS_IF_BAT_SUBDIR "batman_adv"
+#define BATADV_SYSFS_IF_BAT_SUBDIR "batman_adv_legacy"
 
 struct batadv_attribute {
 	struct attribute attr;
@@ -31,12 +31,12 @@ struct batadv_attribute {
 			 char *buf, size_t count);
 };
 
-int batadv_sysfs_add_meshif(struct net_device *dev);
-void batadv_sysfs_del_meshif(struct net_device *dev);
-int batadv_sysfs_add_hardif(struct kobject **hardif_obj,
+int batadv_lega_sysfs_add_meshif(struct net_device *dev);
+void batadv_lega_sysfs_del_meshif(struct net_device *dev);
+int batadv_lega_sysfs_add_hardif(struct kobject **hardif_obj,
 			    struct net_device *dev);
-void batadv_sysfs_del_hardif(struct kobject **hardif_obj);
-int batadv_throw_uevent(struct batadv_priv *bat_priv, enum batadv_uev_type type,
+void batadv_lega_sysfs_del_hardif(struct kobject **hardif_obj);
+int batadv_lega_throw_uevent(struct batadv_priv *bat_priv, enum batadv_uev_type type,
 			enum batadv_uev_action action, const char *data);
 
 #endif /* _NET_BATMAN_ADV_SYSFS_H_ */

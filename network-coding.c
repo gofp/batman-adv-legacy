@@ -54,7 +54,7 @@ int __init batadv_nc_init(void)
  */
 static void batadv_nc_start_timer(struct batadv_priv *bat_priv)
 {
-	queue_delayed_work(batadv_event_workqueue, &bat_priv->nc.work,
+	queue_delayed_work(batadv_lega_event_workqueue, &bat_priv->nc.work,
 			   msecs_to_jiffies(10));
 }
 

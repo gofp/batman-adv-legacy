@@ -21,97 +21,97 @@
 #define _NET_BATMAN_ADV_BLA_H_
 
 #ifdef CONFIG_BATMAN_ADV_BLA
-int batadv_bla_rx(struct batadv_priv *bat_priv, struct sk_buff *skb,
+int batadv_lega_bla_rx(struct batadv_priv *bat_priv, struct sk_buff *skb,
 		  unsigned short vid, bool is_bcast);
-int batadv_bla_tx(struct batadv_priv *bat_priv, struct sk_buff *skb,
+int batadv_lega_bla_tx(struct batadv_priv *bat_priv, struct sk_buff *skb,
 		  unsigned short vid);
-int batadv_bla_backbone_dump(struct sk_buff *msg, struct netlink_callback *cb);
-int batadv_bla_is_backbone_gw(struct sk_buff *skb,
+int batadv_lega_bla_backbone_dump(struct sk_buff *msg, struct netlink_callback *cb);
+int batadv_lega_bla_is_backbone_gw(struct sk_buff *skb,
 			      struct batadv_orig_node *orig_node, int hdr_size);
-int batadv_bla_claim_table_seq_print_text(struct seq_file *seq, void *offset);
-int batadv_bla_claim_dump(struct sk_buff *msg, struct netlink_callback *cb);
-int batadv_bla_backbone_table_seq_print_text(struct seq_file *seq,
+int batadv_lega_bla_claim_table_seq_print_text(struct seq_file *seq, void *offset);
+int batadv_lega_bla_claim_dump(struct sk_buff *msg, struct netlink_callback *cb);
+int batadv_lega_bla_backbone_table_seq_print_text(struct seq_file *seq,
 					     void *offset);
-int batadv_bla_is_backbone_gw_orig(struct batadv_priv *bat_priv, uint8_t *orig);
-int batadv_bla_check_bcast_duplist(struct batadv_priv *bat_priv,
+int batadv_lega_bla_is_backbone_gw_orig(struct batadv_priv *bat_priv, uint8_t *orig);
+int batadv_lega_bla_check_bcast_duplist(struct batadv_priv *bat_priv,
 				   struct sk_buff *skb);
-void batadv_bla_update_orig_address(struct batadv_priv *bat_priv,
+void batadv_lega_bla_update_orig_address(struct batadv_priv *bat_priv,
 				    struct batadv_hard_iface *primary_if,
 				    struct batadv_hard_iface *oldif);
-int batadv_bla_init(struct batadv_priv *bat_priv);
-void batadv_bla_free(struct batadv_priv *bat_priv);
-int batadv_bla_claim_dump(struct sk_buff *msg, struct netlink_callback *cb);
+int batadv_lega_bla_init(struct batadv_priv *bat_priv);
+void batadv_lega_bla_free(struct batadv_priv *bat_priv);
+int batadv_lega_bla_claim_dump(struct sk_buff *msg, struct netlink_callback *cb);
 #define BATADV_BLA_CRC_INIT	0
 #else /* ifdef CONFIG_BATMAN_ADV_BLA */
 
-static inline int batadv_bla_rx(struct batadv_priv *bat_priv,
+static inline int batadv_lega_bla_rx(struct batadv_priv *bat_priv,
 				struct sk_buff *skb, unsigned short vid,
 				bool is_bcast)
 {
 	return 0;
 }
 
-static inline int batadv_bla_tx(struct batadv_priv *bat_priv,
+static inline int batadv_lega_bla_tx(struct batadv_priv *bat_priv,
 				struct sk_buff *skb, unsigned short vid)
 {
 	return 0;
 }
 
-static inline int batadv_bla_is_backbone_gw(struct sk_buff *skb,
+static inline int batadv_lega_bla_is_backbone_gw(struct sk_buff *skb,
 					    struct batadv_orig_node *orig_node,
 					    int hdr_size)
 {
 	return 0;
 }
 
-static inline int batadv_bla_claim_table_seq_print_text(struct seq_file *seq,
+static inline int batadv_lega_bla_claim_table_seq_print_text(struct seq_file *seq,
 							void *offset)
 {
 	return 0;
 }
 
-static inline int batadv_bla_backbone_table_seq_print_text(struct seq_file *seq,
+static inline int batadv_lega_bla_backbone_table_seq_print_text(struct seq_file *seq,
 							   void *offset)
 {
 	return 0;
 }
 
-static inline int batadv_bla_is_backbone_gw_orig(struct batadv_priv *bat_priv,
+static inline int batadv_lega_bla_is_backbone_gw_orig(struct batadv_priv *bat_priv,
 						 uint8_t *orig)
 {
 	return 0;
 }
 
 static inline int
-batadv_bla_check_bcast_duplist(struct batadv_priv *bat_priv,
+batadv_lega_bla_check_bcast_duplist(struct batadv_priv *bat_priv,
 			       struct sk_buff *skb)
 {
 	return 0;
 }
 
 static inline void
-batadv_bla_update_orig_address(struct batadv_priv *bat_priv,
+batadv_lega_bla_update_orig_address(struct batadv_priv *bat_priv,
 			       struct batadv_hard_iface *primary_if,
 			       struct batadv_hard_iface *oldif)
 {
 }
 
-static inline int batadv_bla_init(struct batadv_priv *bat_priv)
+static inline int batadv_lega_bla_init(struct batadv_priv *bat_priv)
 {
 	return 1;
 }
 
-static inline void batadv_bla_free(struct batadv_priv *bat_priv)
+static inline void batadv_lega_bla_free(struct batadv_priv *bat_priv)
 {
 }
 
-static inline int batadv_bla_claim_dump(struct sk_buff *msg,
+static inline int batadv_lega_bla_claim_dump(struct sk_buff *msg,
 					struct netlink_callback *cb)
 {
 	return -EOPNOTSUPP;
 }
 
-static inline int batadv_bla_backbone_dump(struct sk_buff *msg,
+static inline int batadv_lega_bla_backbone_dump(struct sk_buff *msg,
 					   struct netlink_callback *cb)
 {
 	return -EOPNOTSUPP;

@@ -19,11 +19,12 @@
 
 #ifndef _NET_BATMAN_ADV_MAIN_H_
 #define _NET_BATMAN_ADV_MAIN_H_
+#undef CONFIG_MODULE_STRIPPED
 
 #define BATADV_DRIVER_AUTHOR "Marek Lindner <lindner_marek@yahoo.de>, " \
 			     "Simon Wunderlich <siwu@hrz.tu-chemnitz.de>"
 #define BATADV_DRIVER_DESC   "B.A.T.M.A.N. advanced"
-#define BATADV_DRIVER_DEVICE "batman-adv"
+#define BATADV_DRIVER_DEVICE "batman-adv-legcy"
 
 #ifndef BATADV_SOURCE_VERSION
 #define BATADV_SOURCE_VERSION "2013.4.0"
@@ -175,29 +176,29 @@ enum batadv_vlan_flags {
 #define BATADV_PRINT_VID(vid) (vid & BATADV_VLAN_HAS_TAG ? \
 			       (int)(vid & VLAN_VID_MASK) : -1)
 
-extern char batadv_routing_algo[];
-extern struct list_head batadv_hardif_list;
+extern char batadv_lega_routing_algo[];
+extern struct list_head batadv_lega_hardif_list;
 
-extern unsigned char batadv_broadcast_addr[];
-extern struct workqueue_struct *batadv_event_workqueue;
+extern unsigned char batadv_lega_broadcast_addr[];
+extern struct workqueue_struct *batadv_lega_event_workqueue;
 
-int batadv_mesh_init(struct net_device *soft_iface);
-void batadv_mesh_free(struct net_device *soft_iface);
-int batadv_is_my_mac(struct batadv_priv *bat_priv, const uint8_t *addr);
+int batadv_lega_mesh_init(struct net_device *soft_iface);
+void batadv_lega_mesh_free(struct net_device *soft_iface);
+int batadv_lega_is_my_mac(struct batadv_priv *bat_priv, const uint8_t *addr);
 struct batadv_hard_iface *
-batadv_seq_print_text_primary_if_get(struct seq_file *seq);
-int batadv_batman_skb_recv(struct sk_buff *skb, struct net_device *dev,
+batadv_lega_seq_print_text_primary_if_get(struct seq_file *seq);
+int batadv_lega_batman_skb_recv(struct sk_buff *skb, struct net_device *dev,
 			   struct packet_type *ptype,
 			   struct net_device *orig_dev);
 int
-batadv_recv_handler_register(uint8_t packet_type,
+batadv_lega_recv_handler_register(uint8_t packet_type,
 			     int (*recv_handler)(struct sk_buff *,
 						 struct batadv_hard_iface *));
-void batadv_recv_handler_unregister(uint8_t packet_type);
-int batadv_algo_register(struct batadv_algo_ops *bat_algo_ops);
-int batadv_algo_select(struct batadv_priv *bat_priv, char *name);
-int batadv_algo_seq_print_text(struct seq_file *seq, void *offset);
-__be32 batadv_skb_crc32(struct sk_buff *skb, u8 *payload_ptr);
+void batadv_lega_recv_handler_unregister(uint8_t packet_type);
+int batadv_lega_algo_register(struct batadv_algo_ops *bat_algo_ops);
+int batadv_lega_algo_select(struct batadv_priv *bat_priv, char *name);
+int batadv_lega_algo_seq_print_text(struct seq_file *seq, void *offset);
+__be32 batadv_lega_skb_crc32(struct sk_buff *skb, u8 *payload_ptr);
 
 /**
  * enum batadv_dbg_level - available log levels
@@ -220,20 +221,20 @@ enum batadv_dbg_level {
 };
 
 #ifdef CONFIG_BATMAN_ADV_DEBUG
-int batadv_debug_log(struct batadv_priv *bat_priv, const char *fmt, ...)
+int batadv_lega_debug_log(struct batadv_priv *bat_priv, const char *fmt, ...)
 __printf(2, 3);
 
 /* possibly ratelimited debug output */
-#define _batadv_dbg(type, bat_priv, ratelimited, fmt, arg...)			\
+#define _batadv_lega_dbg(type, bat_priv, ratelimited, fmt, arg...)			\
 	do {							\
 		if (atomic_read(&bat_priv->log_level) & type && \
 		    (!ratelimited || net_ratelimit()))	\
-			batadv_debug_log(bat_priv, fmt, ## arg);\
+			batadv_lega_debug_log(bat_priv, fmt, ## arg);\
 	}							\
 	while (0)
 #else /* !CONFIG_BATMAN_ADV_DEBUG */
 __printf(4, 5)
-static inline void _batadv_dbg(int type __always_unused,
+static inline void _batadv_lega_dbg(int type __always_unused,
 			      struct batadv_priv *bat_priv __always_unused,
 			      int ratelimited __always_unused,
 			      const char *fmt __always_unused, ...)
@@ -241,23 +242,23 @@ static inline void _batadv_dbg(int type __always_unused,
 }
 #endif
 
-#define batadv_dbg(type, bat_priv, arg...) \
-	_batadv_dbg(type, bat_priv, 0, ## arg)
-#define batadv_dbg_ratelimited(type, bat_priv, arg...) \
-	_batadv_dbg(type, bat_priv, 1, ## arg)
+#define batadv_lega_dbg(type, bat_priv, arg...) \
+	_batadv_lega_dbg(type, bat_priv, 0, ## arg)
+#define batadv_lega_dbg_ratelimited(type, bat_priv, arg...) \
+	_batadv_lega_dbg(type, bat_priv, 1, ## arg)
 
-#define batadv_info(net_dev, fmt, arg...)				\
+#define batadv_lega_info(net_dev, fmt, arg...)				\
 	do {								\
 		struct net_device *_netdev = (net_dev);                 \
 		struct batadv_priv *_batpriv = netdev_priv(_netdev);    \
-		batadv_dbg(BATADV_DBG_ALL, _batpriv, fmt, ## arg);	\
+		batadv_lega_dbg(BATADV_DBG_ALL, _batpriv, fmt, ## arg);	\
 		pr_info("%s: " fmt, _netdev->name, ## arg);		\
 	} while (0)
-#define batadv_err(net_dev, fmt, arg...)				\
+#define batadv_lega_err(net_dev, fmt, arg...)				\
 	do {								\
 		struct net_device *_netdev = (net_dev);                 \
 		struct batadv_priv *_batpriv = netdev_priv(_netdev);    \
-		batadv_dbg(BATADV_DBG_ALL, _batpriv, fmt, ## arg);	\
+		batadv_lega_dbg(BATADV_DBG_ALL, _batpriv, fmt, ## arg);	\
 		pr_err("%s: " fmt, _netdev->name, ## arg);		\
 	} while (0)
 
@@ -265,7 +266,7 @@ static inline void _batadv_dbg(int type __always_unused,
  *
  * note: can't use compare_ether_addr() as it requires aligned memory
  */
-static inline int batadv_compare_eth(const void *data1, const void *data2)
+static inline int batadv_lega_compare_eth(const void *data1, const void *data2)
 {
 	return (memcmp(data1, data2, ETH_ALEN) == 0 ? 1 : 0);
 }
@@ -277,16 +278,16 @@ static inline int batadv_compare_eth(const void *data1, const void *data2)
  *
  * Returns true if current time is after timestamp + timeout
  */
-static inline bool batadv_has_timed_out(unsigned long timestamp,
+static inline bool batadv_lega_has_timed_out(unsigned long timestamp,
 					unsigned int timeout)
 {
 	return time_is_before_jiffies(timestamp + msecs_to_jiffies(timeout));
 }
 
-#define batadv_atomic_dec_not_zero(v)	atomic_add_unless((v), -1, 0)
+#define batadv_lega_atomic_dec_not_zero(v)	atomic_add_unless((v), -1, 0)
 
 /* Returns the smallest signed integer in two's complement with the sizeof x */
-#define batadv_smallest_signed_int(x) (1u << (7u + 8u * (sizeof(x) - 1u)))
+#define batadv_lega_smallest_signed_int(x) (1u << (7u + 8u * (sizeof(x) - 1u)))
 
 /* Checks if a sequence number x is a predecessor/successor of y.
  * they handle overflows/underflows and can correctly check for a
@@ -298,24 +299,24 @@ static inline bool batadv_has_timed_out(unsigned long timestamp,
  *  - when adding 128 - it is neither a predecessor nor a successor,
  *  - after adding more than 127 to the starting value - it is a successor
  */
-#define batadv_seq_before(x, y) ({typeof(x) _d1 = (x); \
+#define batadv_lega_seq_before(x, y) ({typeof(x) _d1 = (x); \
 				 typeof(y) _d2 = (y); \
 				 typeof(x) _dummy = (_d1 - _d2); \
 				 (void) (&_d1 == &_d2); \
-				 _dummy > batadv_smallest_signed_int(_dummy); })
-#define batadv_seq_after(x, y) batadv_seq_before(y, x)
+				 _dummy > batadv_lega_smallest_signed_int(_dummy); })
+#define batadv_lega_seq_after(x, y) batadv_seq_lega_before(y, x)
 
 /* Stop preemption on local cpu while incrementing the counter */
-static inline void batadv_add_counter(struct batadv_priv *bat_priv, size_t idx,
+static inline void batadv_lega_add_counter(struct batadv_priv *bat_priv, size_t idx,
 				      size_t count)
 {
 	this_cpu_add(bat_priv->bat_counters[idx], count);
 }
 
-#define batadv_inc_counter(b, i) batadv_add_counter(b, i, 1)
+#define batadv_lega_inc_counter(b, i) batadv_lega_add_counter(b, i, 1)
 
 /* Sum and return the cpu-local counters for index 'idx' */
-static inline uint64_t batadv_sum_counter(struct batadv_priv *bat_priv,
+static inline uint64_t batadv_lega_sum_counter(struct batadv_priv *bat_priv,
 					  size_t idx)
 {
 	uint64_t *counters, sum = 0;

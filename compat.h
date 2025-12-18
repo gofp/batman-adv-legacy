@@ -64,7 +64,7 @@
 
 #define this_cpu_add(x, c)	batadv_this_cpu_add(&(x), c)
 
-static inline void batadv_this_cpu_add(uint64_t *count_ptr, size_t count)
+static inline void batadv_lega_this_cpu_add(uint64_t *count_ptr, size_t count)
 {
 	int cpu = get_cpu();
 	*per_cpu_ptr(count_ptr, cpu) += count;
@@ -74,10 +74,10 @@ static inline void batadv_this_cpu_add(uint64_t *count_ptr, size_t count)
 #define batadv_softif_destroy_netlink(dev, head) batadv_softif_destroy_netlink(dev)
 #define unregister_netdevice_queue(dev, head) unregister_netdevice(dev)
 
-static inline struct sk_buff *netdev_alloc_skb_ip_align(struct net_device *dev,
+static inline struct sk_buff *netdev_lega_alloc_skb_ip_align(struct net_device *dev,
 							unsigned int length)
 {
-	struct sk_buff *skb = netdev_alloc_skb(dev, length + NET_IP_ALIGN);
+	struct sk_buff *skb = netdev_lega_alloc_skb(dev, length + NET_IP_ALIGN);
 
 	if (NET_IP_ALIGN && skb)
 		skb_reserve(skb, NET_IP_ALIGN);
@@ -132,7 +132,7 @@ struct kernel_param_ops {
 				    __compat_get_param_##name, arg,	\
 				    __same_type((arg), bool *), perm)
 
-static inline int batadv_param_set_copystring(const char *val,
+static inline int batadv_lega_param_set_copystring(const char *val,
 					      const struct kernel_param *kp)
 {
 	return param_set_copystring(val, (struct kernel_param *)kp);
@@ -182,14 +182,14 @@ static const struct { \
 #define kfree_rcu(ptr, rcu_head) call_rcu(&ptr->rcu_head, batadv_free_rcu_##ptr)
 #define vlan_insert_tag(skb, proto, vid) __vlan_put_tag(skb, vid)
 
-void batadv_free_rcu_gw_node(struct rcu_head *rcu);
-void batadv_free_rcu_neigh_node(struct rcu_head *rcu);
-void batadv_free_rcu_tt_local_entry(struct rcu_head *rcu);
-void batadv_free_rcu_backbone_gw(struct rcu_head *rcu);
-void batadv_free_rcu_dat_entry(struct rcu_head *rcu);
-void batadv_free_rcu_nc_path(struct rcu_head *rcu);
+void batadv_lega_free_rcu_gw_node(struct rcu_head *rcu);
+void batadv_lega_free_rcu_neigh_node(struct rcu_head *rcu);
+void batadv_lega_free_rcu_tt_local_entry(struct rcu_head *rcu);
+void batadv_lega_free_rcu_backbone_gw(struct rcu_head *rcu);
+void batadv_lega_free_rcu_dat_entry(struct rcu_head *rcu);
+void batadv_lega_free_rcu_nc_path(struct rcu_head *rcu);
 
-static inline void skb_reset_mac_len(struct sk_buff *skb)
+static inline void skb_lega_reset_mac_len(struct sk_buff *skb)
 {
 	skb->mac_len = skb->network_header - skb->mac_header;
 }
@@ -201,7 +201,7 @@ static inline void skb_reset_mac_len(struct sk_buff *skb)
 
 #define eth_hw_addr_random(dev)	batadv_eth_hw_addr_random(dev)
 
-static inline void batadv_eth_hw_addr_random(struct net_device *dev)
+static inline void batadv_lega_eth_hw_addr_random(struct net_device *dev)
 {
 	random_ether_addr(dev->dev_addr);
 }
@@ -390,7 +390,7 @@ struct batadv_genl_family {
 #define genlmsg_multicast_netns batadv_genlmsg_multicast_netns
 
 static inline int
-batadv_genlmsg_multicast_netns(struct batadv_genl_family *family,
+batadv_lega_genlmsg_multicast_netns(struct batadv_genl_family *family,
 			       struct net *net,
 			       struct sk_buff *skb,
 			       u32 portid, unsigned int group,
@@ -408,7 +408,7 @@ batadv_genlmsg_multicast_netns(struct batadv_genl_family *family,
 #define genl_unregister_family(_family) \
 	genl_unregister_family(&(_family)->family)
 
-static inline int batadv_genl_register_family(struct genl_family *family)
+static inline int batadv_lega_genl_register_family(struct genl_family *family)
 {
 	unsigned int i;
 	int ret;
@@ -520,16 +520,20 @@ static inline int nla_put_in_addr(struct sk_buff *skb, int attrtype,
 
 #endif /* < KERNEL_VERSION(4, 15, 0) */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
 
+/* hack for netlink.c which marked the family ops as ro */
+#ifdef __ro_after_init
+#undef __ro_after_init
+#endif
 #define __ro_after_init
 
 #endif /* < KERNEL_VERSION(4, 10, 0) */
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)
 
-#define netif_trans_update batadv_netif_trans_update
-static inline void batadv_netif_trans_update(struct net_device *dev)
+#define netif_trans_update batadv_lega_netif_trans_update
+static inline void batadv_lega_netif_trans_update(struct net_device *dev)
 {
 	dev->trans_start = jiffies;
 }
@@ -542,7 +546,7 @@ static inline void batadv_netif_trans_update(struct net_device *dev)
  * net_device
  */
 #define ether_setup(dev) \
-	void batadv_softif_free2(struct net_device *dev) \
+	void batadv_lega_softif_free2(struct net_device *dev) \
 	{ \
 		batadv_softif_free(dev); \
 		free_netdev(dev); \
@@ -557,8 +561,8 @@ static inline void batadv_netif_trans_update(struct net_device *dev)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 
-#define batadv_softif_slave_add(__dev, __slave_dev, __extack) \
-	batadv_softif_slave_add(__dev, __slave_dev)
+#define batadv_lega_softif_slave_add(__dev, __slave_dev, __extack) \
+	batadv_lega_softif_slave_add(__dev, __slave_dev)
 
 #endif /* < KERNEL_VERSION(4, 15, 0) */
 
@@ -566,7 +570,7 @@ static inline void batadv_netif_trans_update(struct net_device *dev)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 
-static inline int batadv_access_ok(int type, const void __user *p,
+static inline int batadv_lega_access_ok(int type, const void __user *p,
 				   unsigned long size)
 {
 	return access_ok(type, p, size);
@@ -580,139 +584,9 @@ static inline int batadv_access_ok(int type, const void __user *p,
 #define access_ok(...) \
 	access_ok_get(__VA_ARGS__, access_ok3, access_ok2)(__VA_ARGS__)
 
-#define access_ok2(addr, size) batadv_access_ok(VERIFY_WRITE, (addr), (size))
-#define access_ok3(type, addr, size)   batadv_access_ok((type), (addr), (size))
+#define access_ok2(addr, size) batadv_lega_access_ok(VERIFY_WRITE, (addr), (size))
+#define access_ok3(type, addr, size)   batadv_lega_access_ok((type), (addr), (size))
 
 #endif /* < KERNEL_VERSION(5, 0, 0) */
-
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
-
-enum genl_validate_flags {
-	GENL_DONT_VALIDATE_STRICT		= BIT(0),
-	GENL_DONT_VALIDATE_DUMP			= BIT(1),
-	GENL_DONT_VALIDATE_DUMP_STRICT		= BIT(2),
-};
-
-struct batadv_genl_ops {
-	int		       (*doit)(struct sk_buff *skb,
-				       struct genl_info *info);
-	int		       (*start)(struct netlink_callback *cb);
-	int		       (*dumpit)(struct sk_buff *skb,
-					 struct netlink_callback *cb);
-	int		       (*done)(struct netlink_callback *cb);
-	u8			cmd;
-	u8			internal_flags;
-	u8			flags;
-	u8			validate;
-};
-
-struct batadv_genl_family {
-	/* data handled by the actual kernel */
-	struct genl_family family;
-
-	/* data which has to be copied to family by
-	 * batadv_genl_register_family
-	 */
-	unsigned int hdrsize;
-	char name[GENL_NAMSIZ];
-	unsigned int version;
-	unsigned int maxattr;
-	const struct nla_policy *policy;
-	bool netnsok;
-	int  (*pre_doit)(const struct genl_ops *ops, struct sk_buff *skb,
-			 struct genl_info *info);
-	void (*post_doit)(const struct genl_ops *ops, struct sk_buff *skb,
-			  struct genl_info *info);
-	const struct batadv_genl_ops *ops;
-	const struct genl_multicast_group *mcgrps;
-	unsigned int n_ops;
-	unsigned int n_mcgrps;
-	struct module *module;
-
-	/* allocated by batadv_genl_register_family and free'd by
-	 * batadv_genl_unregister_family. Used to modify the usually read-only
-	 * ops
-	 */
-	struct genl_ops *copy_ops;
-};
-
-static inline int batadv_genl_register_family(struct batadv_genl_family *family)
-{
-	struct genl_ops *ops;
-	unsigned int i;
-
-	family->family.hdrsize = family->hdrsize;
-	strncpy(family->family.name, family->name, sizeof(family->family.name));
-	family->family.version = family->version;
-	family->family.maxattr = family->maxattr;
-	family->family.netnsok = family->netnsok;
-	family->family.pre_doit = family->pre_doit;
-	family->family.post_doit = family->post_doit;
-	family->family.mcgrps = family->mcgrps;
-	family->family.n_ops = family->n_ops;
-	family->family.n_mcgrps = family->n_mcgrps;
-	family->family.module = family->module;
-
-	ops = kzalloc(sizeof(*ops) * family->n_ops, GFP_KERNEL);
-	if (!ops)
-		return -ENOMEM;
-
-	for (i = 0; i < family->family.n_ops; i++) {
-		ops[i].doit = family->ops[i].doit;
-		ops[i].start = family->ops[i].start;
-		ops[i].dumpit = family->ops[i].dumpit;
-		ops[i].done = family->ops[i].done;
-		ops[i].cmd = family->ops[i].cmd;
-		ops[i].internal_flags = family->ops[i].internal_flags;
-		ops[i].flags = family->ops[i].flags;
-		ops[i].policy = family->policy;
-	}
-
-	family->family.ops = ops;
-	family->copy_ops = ops;
-
-	return genl_register_family(&family->family);
-}
-
-typedef struct genl_ops batadv_genl_ops_old;
-
-#define batadv_pre_doit(__x, __y, __z) \
-	batadv_pre_doit(const batadv_genl_ops_old *ops, __y, __z)
-
-#define batadv_post_doit(__x, __y, __z) \
-	batadv_post_doit(const batadv_genl_ops_old *ops, __y, __z)
-
-#define genl_ops batadv_genl_ops
-#define genl_family batadv_genl_family
-
-#define genl_register_family(family) \
-	batadv_genl_register_family((family))
-
-static inline void
-batadv_genl_unregister_family(struct batadv_genl_family *family)
-{
-
-	genl_unregister_family(&family->family);
-	kfree(family->copy_ops);
-}
-
-#define genl_unregister_family(family) \
-	batadv_genl_unregister_family((family))
-
-#define genlmsg_put(_skb, _pid, _seq, _family, _flags, _cmd) \
-	genlmsg_put(_skb, _pid, _seq, &(_family)->family, _flags, _cmd)
-
-#define genlmsg_multicast_netns(_family, _net, _skb, _portid, _group, _flags) \
-	genlmsg_multicast_netns(&(_family)->family, _net, _skb, _portid, \
-				_group, _flags)
-
-#endif /* < KERNEL_VERSION(5, 2, 0) */
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-
-#define nf_reset_ct nf_reset
-
-#endif /* < KERNEL_VERSION(5, 4, 0) */
 
 #endif /* _NET_BATMAN_ADV_COMPAT_H_ */

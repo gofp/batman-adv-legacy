@@ -20,7 +20,7 @@
 
 # read README.external for more information about the configuration
 # B.A.T.M.A.N. debugging:
-export CONFIG_BATMAN_ADV_DEBUG=n
+export CONFIG_BATMAN_ADV_DEBUG=y
 # B.A.T.M.A.N. bridge loop avoidance:
 export CONFIG_BATMAN_ADV_BLA=y
 # B.A.T.M.A.N. distributed ARP table:
@@ -43,7 +43,7 @@ REVISION= $(shell	if [ -d "$(PWD)/.git" ]; then \
 			fi)
 
 CONFIG_BATMAN_ADV=m
-batman-adv-y += compat.o
+batman-adv-legacy-y += compat.o
 ifneq ($(REVISION),)
 ccflags-y += -DBATADV_SOURCE_VERSION=\"$(REVISION)\"
 endif
@@ -57,7 +57,7 @@ clean:
 	$(MAKE) -C $(KERNELPATH) M=$(PWD) PWD=$(PWD) clean
 
 install: config
-	$(MAKE) -C $(KERNELPATH) M=$(PWD) PWD=$(PWD) INSTALL_MOD_DIR=updates/net/batman-adv/ modules_install
+	$(MAKE) -C $(KERNELPATH) M=$(PWD) PWD=$(PWD) INSTALL_MOD_DIR=updates/net/batman-adv-legacy/ modules_install
 	depmod -a
 
 config:
