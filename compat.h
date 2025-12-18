@@ -554,8 +554,8 @@ static inline void batadv_lega_netif_trans_update(struct net_device *dev)
 	void (*t1)(struct net_device *dev) __attribute__((unused)); \
 	bool t2 __attribute__((unused)); \
 	ether_setup(dev)
-#define needs_free_netdev destructor = batadv_softif_free2; t2
-#define priv_destructor destructor = batadv_softif_free2; t1
+#define needs_free_netdev destructor = batadv_lega_softif_free2; t2
+#define priv_destructor destructor = batadv_lega_softif_free2; t1
 
 #endif /* < KERNEL_VERSION(4, 12, 0) */
 
