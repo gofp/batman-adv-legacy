@@ -272,18 +272,18 @@ struct batadv_netlink_skb_parms {
 
 #define prandom_u32() random32()
 
-#define batadv_interface_set_mac_addr(x, y) \
+#define batadv_lega_interface_set_mac_addr(x, y) \
 __batadv_interface_set_mac_addr(struct net_device *dev, void *p);\
 static int batadv_interface_set_mac_addr(struct net_device *dev, void *p) \
 {\
 	int ret;\
 \
-	ret = __batadv_interface_set_mac_addr(dev, p);\
+	ret = __batadv_lega_interface_set_mac_addr(dev, p);\
 	if (!ret) \
 		dev->addr_assign_type &= ~NET_ADDR_RANDOM;\
 	return ret;\
 }\
-static int __batadv_interface_set_mac_addr(x, y)
+static int __batadv_lega_interface_set_mac_addr(x, y)
 
 #define netdev_upper_dev_unlink(slave, master) netdev_set_master(slave, NULL)
 #define netdev_master_upper_dev_get(dev) \
@@ -548,7 +548,7 @@ static inline void batadv_lega_netif_trans_update(struct net_device *dev)
 #define ether_setup(dev) \
 	void batadv_lega_softif_free2(struct net_device *dev) \
 	{ \
-		batadv_softif_free(dev); \
+		batadv_lega_softif_free(dev); \
 		free_netdev(dev); \
 	} \
 	void (*t1)(struct net_device *dev) __attribute__((unused)); \
